@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  app:
+    image: dunglas/frankenphp
+    container_name: frankenphp_app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./app:/app
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    environment:
+      - SERVER_NAME=localhost
+      - PHP_VERSION=8.2
+    restart: unless-stopped

@@ -1,0 +1,37 @@
+Oyuncular arasından bir oyuncunun dağıtıcı olarak belirlenmesinden sonra , dağıtıcı her oyuncuya 21 taş dağıtır ve kendine 22 taş alır. Geri kalan taşlar masada ters çevrilmiş şekilde dururken bir tane taş açık durur. Bu açık taş jokeri (OKEY taşını) belirler. Oyun saat yönünün tersine doğru oynanır. Oyuna taş dağıtan başlar ve bu oyuncu taş çekmeden bir taş atar. Sonra onun sağındaki oynar.
+
+Sırası gelen oyuncu ya desteden bir taş çeker ya da bir önceki oyuncunun attığı son taşı alır. Oyuncu taş çektikten sonra eğer elindeki serilerin toplamı 101 sayısına ulaşıyorsa elini açabilir (dizdiği serileri masanın üstüne koyar). Oyuncu elini açınca elindeki serileri masaya, diğer seri taşların yanına koyar. Eğer oyuncu elini açamıyorsa masaya bir taş atarak sırasını savar. Oyun sırası gelen oyuncu sırasını mutlaka masaya bir taş atarak tamamlar. Hatta oyuncu tüm elini açsa dahi son taşını masaya atmak zorundadır.
+
+Joker (okey taşı)
+Jokeri (okey taşını) belirleyen taş her oyunda değişir. İki joker taşı (sahte joker olarak da adlandırılır) açık duran taşın bir üstü sayıyı temsil ederler. Sahte joker diğer standart taşlardan farklı bir görünüme sahiptir.
+
+Gerçek jokerler (her taş açılan taşa göre değişik oyunlarda joker (okey taşı) olabilir) üzerindeki sayılar 'sahte jokerler' ile temsil edilirler. Örnek olarak gösterge taşı mavi 5 ise gerçek jokerler oyundaki iki mavi altılardır. Joker taşları (sahte jokerler) mavi 6 olarak değer kazanırlar.
+
+Perler ve el açmak
+El açmak için en az 101 sayınız olmalıdır. El açmak için elinizde aynı numaralı değişik renklerden 3 veya 4 adet set (örnek olarak siyah 5, kırmızı 5 ve bir tane de mavi 5) veya aynı renklerden sıralı sayı seti (örnek olarak kırmızı 7,8,9) olmalıdır. Bir sette minimum 3 taş olmalıdır. Mevcut açılmış taşlara taş eklenebilmesi için oyuncunun minimum 101 sayısına ulaşarak elini açmış olmasi gerekir. Aynı oyun sırasında hem elinizi açabilir hem de diğer açılmış setlere eklemeler yapabilirsiniz.
+
+Eğer oyuncu kendinden önceki oyuncunun attığı taşı alırsa, bu aldığı taşı kullanmak zorundadır. Eğer bu atılan taşı alan oyuncu henüz elini açmamış ise bu taşı aldığı zaman elini açmalı ve açtığı setlerin birinin içinde bu alınan taşı da kullanmış olmalıdır. Bu alınan taşın elinizde istekada durmasına müsade edilmez. Eğer bu alınan taş set oluşturmada veya el açmada kullanılamıyorsa bu taş geri yerine konur ve desteden bir taş çekilir. Bu yanlışlıktan dolayı ceza puanı verilmez.
+
+Çiftler
+Eli açmak için bir başka yol da en az beş çift taş biriktirmektir. Çiftten anlaşılan benzer iki taştır. Eğer oyuncu bir kez çifte giderek oyun açarsa bu oyunda bir daha normal bir set açamaz. Ancak diğer oyuncuların açmış oldukları masadaki setlere taş ekleyebilir. Eğer masadaki dört oyuncu da aynı oyun içinde çift açarsa bu tur iptal olur ve yeni oyuna başlanır. Hiçbir oyuncu bu oyunda ceza puanı almaz.
+
+Puanlama
+Oyunun bir turunun sonlandırılması için oyunculardan birinin istekasındaki tüm taşları oynamış ve son taşını da masaya atmış olması gerekir. Eğer masadaki taş destesinde hiç taş kalmamışsa ve oyunculardan hiçbiri oyunu bitirememişse herkesin istekasındaki taş puanları kendisine yazılır. El açmamış oyunculara 202 puan yazılır.
+
+Oyunculardan biri elindeki tüm taşları oynayarak oyun turunu bitirirse bu oyuncu -101 puan alır. Diğer oyunculara da istekasında kalan taşların değeri kadar ceza puanı alır. Eğer oyuncu hiç set açmamışsa ona 202 ceza puanı yazılır.
+Eğer oyuncu tüm taşlarını oynar ve istekasındaki tüm taşları bitirirse ve son taş olarak da joker atarsa diğer oyuncalar istekalarında kalan sayıların iki misli ceza puanı alırlar. Oyunu bitiren oyuncu -202 puan alır . Eğer diğer oyuncular elini açmışsa istekasında kalan sayıları ceza puanı olarak hesaplarına yazılır ama elini açmamışsa 404 ceza puanı alırlar.
+Eğer oyunculardan biri çifte gitmişse tur sonunda açmış olduğu eller oyun sonunda puan olarak çift yazılır. Eğer çifte giden oyunu bitirirse diğer oyuncuların ceza puanları ikiye katlanır. Oyunu diğer oyunculardan biri bitirirse, çifte giden oyuncunun elinde kalan taşların sayı değerleri iki kat ceza puanı olarak değerlendirilir.
+Eğer oyunculardan biri tek elde elini açarsa diğer oyuncular hiç taş açmamışsa tüm sayılar çifte katlanır. Eğer eli bitiren bitişte joker atarsa bu defa tüm sayılar bir kez daha ikiye katlanır. Bu durumda elini bitiren -808 puan alırken diğerlerine 808 ceza puanı yazılır.
+Tüm turlar bittikten sonra oyun sonunda ceza puanları diğer tüm puanlar toplanır ve en az ceza puanı alan oyunun galibi olur.
+
+Ceza puanları
+Oyuncular aşağıda belirtilen durumlarda ekstra 101 ceza puanı alırlar. Bu ceza puanları tur sonunda aldıkları puanlara eklenir.
+
+Eğer oyuncu masaya taş açmışsa ama açtığı setler ile 101 sayısına ulaşmamışsa taşlarını masadan geri alır ve bu oyuncuya 101 ceza puanı yazılır.
+Eğer oyuncunun masaya attığı taş, masaya atılmış taşlardan birine eklenebiliyorsa, bu oyuncuya 101 ceza puanı yazılır. Oyuncu kendi elini açmamış olsa dahi bu kural geçerlidir.
+Eğer oyuncu elindeki tüm taşları açmış ve elinde kalan son taşı masaya atıyorsa, bu taş bir yere eklenebiliyor olsa dahi bu durumda oyuncuya ceza puanı verilmez.
+Eğer oyuncu masaya açılmış olan setlere birden fazla taş eklerse ve sonra bu taşları geri alırsa 101 ceza puanı alır. Oyuncunun sadece son taşı masadan geri alma hakkı vardır.
+Ek kurallar
+Eğer gösterge taşı 13 ise joker 1 olarak belirlenir.
+Aynı sayı ve aynı renkten perler geçerli değildir (örn. Bir mavi 10, kırmızı 10 ve mavi 10 olmaz).
+13 den sonra 1 bağlantısı devam etmez (örn. Siyah 13, siyah 1, siyah 2 serisi kabul edilmez).

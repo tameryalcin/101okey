@@ -1,0 +1,7 @@
+.
+├── app/
+│   ├── public/
+│   │   └── index.php
+│   └── src/
+├── docker-compose.yml
+└── Caddyfile 
