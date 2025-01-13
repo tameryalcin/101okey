@@ -328,12 +328,29 @@
             </div>
         </div>
 
-        <div x-show="selectedTiles.length >= 3"
-            x-transition
-            class="absolute -top-2 right-0 transform translate-y-[-100%] z-10">
-            <button @click="tryOpenPer"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-sm font-medium">
+        <div class="absolute -top-2 right-0 transform translate-y-[-100%] z-10 flex gap-2">
+            <button @click="autoOpenPer"
+                class="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all shadow-md text-xs font-medium flex items-center gap-1 hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
                 Per Aç
+            </button>
+
+            <button @click="autoOpenPairs"
+                class="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-all shadow-md text-xs font-medium flex items-center gap-1 hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+                Çift Aç
+            </button>
+
+            <button @click="autoOpenHand"
+                class="px-3 py-1.5 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-all shadow-md text-xs font-medium flex items-center gap-1 hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+                El Aç
             </button>
         </div>
     </div>
@@ -438,13 +455,30 @@
 
                     <!-- İstaka -->
                     <div class="relative">
-                        <!-- Per Aç butonu -->
-                        <div x-show="selectedTiles.length >= 3"
-                            x-transition
-                            class="absolute -top-2 right-0 transform translate-y-[-100%] z-10">
-                            <button @click="tryOpenPer"
-                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-sm font-medium">
+                        <!-- İstaka üstündeki butonları güncelle -->
+                        <div class="absolute -top-2 right-0 transform translate-y-[-100%] z-10 flex gap-2">
+                            <button @click="autoOpenPer"
+                                class="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all shadow-md text-xs font-medium flex items-center gap-1 hover:scale-105">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
                                 Per Aç
+                            </button>
+
+                            <button @click="autoOpenPairs"
+                                class="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-all shadow-md text-xs font-medium flex items-center gap-1 hover:scale-105">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                                Çift Aç
+                            </button>
+
+                            <button @click="autoOpenHand"
+                                class="px-3 py-1.5 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-all shadow-md text-xs font-medium flex items-center gap-1 hover:scale-105">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                                </svg>
+                                El Aç
                             </button>
                         </div>
 
@@ -549,7 +583,8 @@
                         name: 'Siz',
                         tileCount: 21,
                         score: 0,
-                        openPers: []
+                        openPers: [],
+                        hasOpenedDouble: false
                     },
                     {
                         name: 'Oyuncu 1',
@@ -624,6 +659,11 @@
 
                     firstPlayerTiles.forEach((tile, index) => {
                         this.playerTiles[index] = tile;
+                    });
+
+                    const currentDealer = Math.floor(Math.random() * 4); // Rastgele dağıtıcı seç
+                    this.players.forEach((player, index) => {
+                        player.tileCount = index === currentDealer ? 22 : 21;
                     });
                 },
 
@@ -1026,6 +1066,452 @@
                             return perTotal + tile.number;
                         }, 0);
                     }, 0);
+                },
+
+                isValidDouble(tiles) {
+                    if (tiles.length < 5) return false; // En az 5 çift olmalı
+
+                    // Çiftleri kontrol et
+                    const pairs = [];
+                    for (let i = 0; i < tiles.length; i += 2) {
+                        const tile1 = tiles[i];
+                        const tile2 = tiles[i + 1];
+
+                        if (!tile1 || !tile2) return false;
+                        if (tile1.color !== tile2.color || tile1.number !== tile2.number) return false;
+
+                        pairs.push([tile1, tile2]);
+                    }
+
+                    return pairs.length >= 5;
+                },
+
+                calculateGameScore(winningPlayer, withJoker = false) {
+                    this.players.forEach((player, index) => {
+                        if (index === winningPlayer) {
+                            // Kazanan oyuncu
+                            const baseScore = withJoker ? -202 : -101;
+                            player.score += player.hasOpenedDouble ? baseScore * 2 : baseScore;
+                        } else {
+                            // Kaybeden oyuncular
+                            let score = 0;
+                            if (!player.openPers.length) {
+                                // Hiç per açmamış
+                                score = withJoker ? 404 : 202;
+                            } else {
+                                // Elinde kalan taşların toplamı
+                                score = this.calculateRemainingScore(player);
+                                if (withJoker) score *= 2;
+                            }
+
+                            if (player.hasOpenedDouble) score *= 2;
+                            player.score += score;
+                        }
+                    });
+                },
+
+                applyPenalty(playerIndex, reason) {
+                    const PENALTY = 101;
+
+                    switch (reason) {
+                        case 'invalid_per_total':
+                            // Per açtı ama 101'e ulaşmadı
+                            this.players[playerIndex].score += PENALTY;
+                            break;
+
+                        case 'missed_addition':
+                            // Eklenebilecek taşı eklemedi
+                            this.players[playerIndex].score += PENALTY;
+                            break;
+
+                        case 'multiple_take_back':
+                            // Birden fazla taş geri aldı
+                            this.players[playerIndex].score += PENALTY;
+                            break;
+                    }
+                },
+
+                canOpenHand() {
+                    // El açma koşullarını kontrol et
+                    const totalPerPoints = this.calculatePerTotal(this.currentPlayer);
+                    return totalPerPoints >= 101;
+                },
+
+                tryOpenDouble() {
+                    if (this.selectedTiles.length < 10) {
+                        alert('Çift açmak için en az 5 çift (10 taş) seçmelisiniz!');
+                        return;
+                    }
+
+                    // İstakadaki pozisyona göre sırala
+                    const sortedIndices = [...this.selectedTiles].sort((a, b) => a - b);
+                    const selectedTilesData = sortedIndices.map(index => ({
+                        ...this.playerTiles[index],
+                        index
+                    }));
+
+                    if (this.isValidDouble(selectedTilesData)) {
+                        // Çiftleri per alanına ekle
+                        const perTiles = selectedTilesData.map(t => ({
+                            color: t.color,
+                            number: t.number
+                        }));
+
+                        this.players[this.currentPlayer].openPers.push(perTiles);
+                        this.players[this.currentPlayer].hasOpenedDouble = true;
+
+                        // Kullanılan taşları istakadan kaldır
+                        sortedIndices.forEach(index => {
+                            this.playerTiles[index] = null;
+                        });
+
+                        // Seçili taşları temizle
+                        this.selectedTiles = [];
+
+                        // Puan ekle (her çift 20 puan)
+                        this.updateScore(this.currentPlayer, perTiles.length * 10);
+                    } else {
+                        alert('Geçersiz çift! Her çift aynı renk ve sayıda olmalı.');
+                    }
+                },
+
+                tryOpenHand() {
+                    const pers = this.findArrangedPers();
+                    const totalPoints = pers.reduce((total, per) => {
+                        // Her per için puan hesapla
+                        const perPoints = per.reduce((perTotal, tile) => {
+                            // Joker kontrolü
+                            if (tile.number === '★') {
+                                return perTotal + (this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1);
+                            }
+
+                            // Okey kontrolü
+                            const okeyTile = this.getOkeyTile();
+                            if (tile.color === okeyTile.color && tile.number === okeyTile.number) {
+                                // Okey taşı için per içindeki diğer taşların ortalamasını al
+                                const otherTiles = per.filter(t => t !== tile);
+                                if (otherTiles.length === 0) return perTotal + tile.number;
+                                const avg = otherTiles.reduce((sum, t) => sum + (t.number === '★' ?
+                                    (this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1) :
+                                    t.number), 0) / otherTiles.length;
+                                return perTotal + Math.round(avg);
+                            }
+
+                            // Normal taş
+                            return perTotal + tile.number;
+                        }, 0);
+
+                        // Her per için bonus puan (opsiyonel)
+                        const bonusPoints = per.length > 3 ? (per.length - 3) * 5 : 0;
+
+                        return total + perPoints + bonusPoints;
+                    }, 0);
+
+                    console.log('Toplam Puanlar:', totalPoints); // Debug için
+
+                    if (totalPoints < 101) {
+                        alert(`Dizili perler toplamı 101 sayısına ulaşmıyor! (Toplam: ${totalPoints})`);
+                        return;
+                    }
+
+                    pers.forEach(per => {
+                        this.players[this.currentPlayer].openPers.push(per);
+                        per.forEach(tile => {
+                            const index = this.playerTiles.findIndex(t => t && t.id === tile.id);
+                            if (index !== -1) this.playerTiles[index] = null;
+                        });
+                    });
+
+                    this.players[this.currentPlayer].handOpened = true;
+                    alert(`El açıldı! Toplam ${totalPoints} puan ile. Artık diğer oyuncuların perlerine taş ekleyebilirsiniz.`);
+                },
+
+                // İstakadaki dizili perleri tespit et
+                findArrangedPers() {
+                    let pers = [];
+                    const rows = [
+                        this.playerTiles.slice(0, 18), // Üst sıra
+                        this.playerTiles.slice(18) // Alt sıra
+                    ];
+
+                    rows.forEach(row => {
+                        let currentPer = [];
+
+                        // Yan yana dizili taşları kontrol et
+                        for (let i = 0; i < row.length; i++) {
+                            const tile = row[i];
+
+                            if (!tile) {
+                                // Boşluk görünce mevcut peri kontrol et
+                                if (currentPer.length >= 3) {
+                                    // Sıralı sayılar kontrolü
+                                    const isSequential = currentPer.every((t, index) =>
+                                        index === 0 || (
+                                            t.color === currentPer[0].color &&
+                                            t.number === currentPer[index - 1].number + 1
+                                        )
+                                    );
+
+                                    // Aynı sayılar kontrolü
+                                    const isSameNumber = currentPer.every(t => t.number === currentPer[0].number) &&
+                                        new Set(currentPer.map(t => t.color)).size === currentPer.length;
+
+                                    if (isSequential || isSameNumber) {
+                                        pers.push([...currentPer]);
+                                    }
+                                }
+                                currentPer = [];
+                                continue;
+                            }
+
+                            // Mevcut per boşsa veya uyumluysa ekle
+                            if (currentPer.length === 0) {
+                                currentPer.push(tile);
+                            } else {
+                                const lastTile = currentPer[currentPer.length - 1];
+
+                                // Sıralı sayılar kontrolü
+                                const isSequential = tile.color === lastTile.color &&
+                                    tile.number === lastTile.number + 1;
+
+                                // Aynı sayılar kontrolü
+                                const isSameNumber = tile.number === lastTile.number &&
+                                    !currentPer.some(t => t.color === tile.color);
+
+                                if ((isSequential && currentPer.length < 5) ||
+                                    (isSameNumber && currentPer.length < 4)) {
+                                    currentPer.push(tile);
+                                } else {
+                                    // Uyumsuz taş, mevcut peri kontrol et
+                                    if (currentPer.length >= 3) {
+                                        const isValidPer = currentPer.every((t, index) =>
+                                            index === 0 || (
+                                                (t.color === currentPer[0].color && t.number === currentPer[index - 1].number + 1) ||
+                                                (t.number === currentPer[0].number && !currentPer.slice(0, index).some(prev => prev.color === t.color))
+                                            )
+                                        );
+
+                                        if (isValidPer) {
+                                            pers.push([...currentPer]);
+                                        }
+                                    }
+                                    currentPer = [tile];
+                                }
+                            }
+                        }
+
+                        // Son peri kontrol et
+                        if (currentPer.length >= 3) {
+                            const isSequential = currentPer.every((t, index) =>
+                                index === 0 || (
+                                    t.color === currentPer[0].color &&
+                                    t.number === currentPer[index - 1].number + 1
+                                )
+                            );
+
+                            const isSameNumber = currentPer.every(t => t.number === currentPer[0].number) &&
+                                new Set(currentPer.map(t => t.color)).size === currentPer.length;
+
+                            if (isSequential || isSameNumber) {
+                                pers.push([...currentPer]);
+                            }
+                        }
+                    });
+
+                    return pers;
+                },
+
+                // Joker ve Okey taşlarını işle
+                processSpecialTiles(pers) {
+                    const okeyTile = this.getOkeyTile();
+
+                    return pers.map(per => {
+                        return per.map(tile => {
+                            // Joker kontrolü
+                            if (tile.number === '★') {
+                                return {
+                                    ...tile,
+                                    actualColor: this.indicatorTile.color,
+                                    actualNumber: this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1
+                                };
+                            }
+
+                            // Okey kontrolü
+                            if (tile.color === okeyTile.color && tile.number === okeyTile.number) {
+                                // Per tipine göre okey değerini belirle
+                                const otherTiles = per.filter(t => t !== tile);
+                                if (otherTiles.length >= 2) {
+                                    if (otherTiles[0].color === otherTiles[1].color) {
+                                        // Sıralı per
+                                        const numbers = otherTiles.map(t => t.number).sort((a, b) => a - b);
+                                        for (let i = 1; i < numbers.length; i++) {
+                                            if (numbers[i] > numbers[i - 1] + 1) {
+                                                return {
+                                                    ...tile,
+                                                    actualNumber: numbers[i - 1] + 1,
+                                                    actualColor: otherTiles[0].color
+                                                };
+                                            }
+                                        }
+                                    } else {
+                                        // Aynı sayılı per
+                                        return {
+                                            ...tile,
+                                            actualNumber: otherTiles[0].number,
+                                            actualColor: otherTiles.map(t => t.color).find(color =>
+                                                !otherTiles.some(t => t.color === color))
+                                        };
+                                    }
+                                }
+                            }
+
+                            return tile;
+                        });
+                    });
+                },
+
+                // Dizili çiftleri tespit et
+                findArrangedPairs() {
+                    const pairs = [];
+                    const rows = [
+                        this.playerTiles.slice(0, 18),
+                        this.playerTiles.slice(18)
+                    ];
+
+                    rows.forEach(row => {
+                        for (let i = 0; i < row.length - 1; i++) {
+                            const tile1 = row[i];
+                            const tile2 = row[i + 1];
+                            if (tile1 && tile2 &&
+                                tile1.color === tile2.color &&
+                                tile1.number === tile2.number) {
+                                pairs.push([tile1, tile2]);
+                                i++; // Çifti bulduk, bir sonraki taşa geç
+                            }
+                        }
+                    });
+
+                    return pairs;
+                },
+
+                // Otomatik per açma
+                autoOpenPer() {
+                    const pers = this.findArrangedPers();
+                    console.log('Bulunan perler:', pers); // Debug için
+
+                    if (pers.length === 0) {
+                        alert('Dizilmiş per bulunamadı!');
+                        return;
+                    }
+
+                    let openedPers = 0;
+                    pers.forEach(per => {
+                        // Per geçerli mi son bir kez kontrol et
+                        const isSequential = per.every((tile, index, arr) =>
+                            index === 0 || (
+                                tile.color === arr[0].color &&
+                                tile.number === arr[index - 1].number + 1
+                            )
+                        );
+
+                        const isSameNumber = per.every(tile => tile.number === per[0].number) &&
+                            new Set(per.map(t => t.color)).size === per.length;
+
+                        if (isSequential || isSameNumber) {
+                            this.players[this.currentPlayer].openPers.push([...per]);
+
+                            // Kullanılan taşları istakadan kaldır
+                            per.forEach(tile => {
+                                const index = this.playerTiles.findIndex(t =>
+                                    t && t.id === tile.id
+                                );
+                                if (index !== -1) {
+                                    this.playerTiles[index] = null;
+                                }
+                            });
+
+                            openedPers++;
+                        }
+                    });
+
+                    if (openedPers > 0) {
+                        alert(`${openedPers} adet per açıldı!`);
+                    } else {
+                        alert('Geçerli per bulunamadı!');
+                    }
+                },
+
+                // Otomatik çift açma
+                autoOpenPairs() {
+                    const pairs = this.findArrangedPairs();
+                    if (pairs.length < 5) {
+                        alert('En az 5 çift dizilmiş olmalı!');
+                        return;
+                    }
+
+                    const allPairTiles = pairs.flat();
+                    this.players[this.currentPlayer].openPers.push(allPairTiles);
+                    this.players[this.currentPlayer].hasOpenedDouble = true;
+
+                    // Kullanılan taşları kaldır
+                    allPairTiles.forEach(tile => {
+                        const index = this.playerTiles.findIndex(t => t && t.id === tile.id);
+                        if (index !== -1) this.playerTiles[index] = null;
+                    });
+
+                    alert(`${pairs.length} çift açıldı!`);
+                },
+
+                // Otomatik el açma
+                autoOpenHand() {
+                    const pers = this.findArrangedPers();
+                    const totalPoints = pers.reduce((total, per) => {
+                        // Her per için puan hesapla
+                        const perPoints = per.reduce((perTotal, tile) => {
+                            // Joker kontrolü
+                            if (tile.number === '★') {
+                                return perTotal + (this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1);
+                            }
+
+                            // Okey kontrolü
+                            const okeyTile = this.getOkeyTile();
+                            if (tile.color === okeyTile.color && tile.number === okeyTile.number) {
+                                // Okey taşı için per içindeki diğer taşların ortalamasını al
+                                const otherTiles = per.filter(t => t !== tile);
+                                if (otherTiles.length === 0) return perTotal + tile.number;
+                                const avg = otherTiles.reduce((sum, t) => sum + (t.number === '★' ?
+                                    (this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1) :
+                                    t.number), 0) / otherTiles.length;
+                                return perTotal + Math.round(avg);
+                            }
+
+                            // Normal taş
+                            return perTotal + tile.number;
+                        }, 0);
+
+                        // Her per için bonus puan (opsiyonel)
+                        const bonusPoints = per.length > 3 ? (per.length - 3) * 5 : 0;
+
+                        return total + perPoints + bonusPoints;
+                    }, 0);
+
+                    console.log('Toplam Puanlar:', totalPoints); // Debug için
+
+                    if (totalPoints < 101) {
+                        alert(`Dizili perler toplamı 101 sayısına ulaşmıyor! (Toplam: ${totalPoints})`);
+                        return;
+                    }
+
+                    pers.forEach(per => {
+                        this.players[this.currentPlayer].openPers.push(per);
+                        per.forEach(tile => {
+                            const index = this.playerTiles.findIndex(t => t && t.id === tile.id);
+                            if (index !== -1) this.playerTiles[index] = null;
+                        });
+                    });
+
+                    this.players[this.currentPlayer].handOpened = true;
+                    alert(`El açıldı! Toplam ${totalPoints} puan ile. Artık diğer oyuncuların perlerine taş ekleyebilirsiniz.`);
                 }
             }));
         });
