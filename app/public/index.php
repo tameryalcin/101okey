@@ -1228,176 +1228,162 @@
 
                 // İstakadaki dizili perleri tespit et
                 findArrangedPers() {
-                    let pers = [];
-                    const rows = [
-                        this.playerTiles.slice(0, 18), // Üst sıra
-                        this.playerTiles.slice(18) // Alt sıra
-                    ];
+                    // Önce okey taşını belirle
+                    const okeyNumber = this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1;
+                    const okeyColor = this.indicatorTile.color;
 
-                    rows.forEach(row => {
-                        let currentPer = [];
-
-                        // Yan yana dizili taşları kontrol et
-                        for (let i = 0; i < row.length; i++) {
-                            const tile = row[i];
-
-                            if (!tile) {
-                                // Boşluk görünce mevcut peri kontrol et
-                                if (currentPer.length >= 3) {
-                                    // Sıralı sayılar kontrolü
-                                    const isSequential = currentPer.every((t, index) =>
-                                        index === 0 || (
-                                            t.color === currentPer[0].color &&
-                                            t.number === currentPer[index - 1].number + 1
-                                        )
-                                    );
-
-                                    // Aynı sayılar kontrolü
-                                    const isSameNumber = currentPer.every(t => t.number === currentPer[0].number) &&
-                                        new Set(currentPer.map(t => t.color)).size === currentPer.length;
-
-                                    if (isSequential || isSameNumber) {
-                                        pers.push([...currentPer]);
-                                    }
-                                }
-                                currentPer = [];
-                                continue;
-                            }
-
-                            // Mevcut per boşsa veya uyumluysa ekle
-                            if (currentPer.length === 0) {
-                                currentPer.push(tile);
-                            } else {
-                                const lastTile = currentPer[currentPer.length - 1];
-
-                                // Sıralı sayılar kontrolü
-                                const isSequential = tile.color === lastTile.color &&
-                                    tile.number === lastTile.number + 1;
-
-                                // Aynı sayılar kontrolü
-                                const isSameNumber = tile.number === lastTile.number &&
-                                    !currentPer.some(t => t.color === tile.color);
-
-                                if ((isSequential && currentPer.length < 5) ||
-                                    (isSameNumber && currentPer.length < 4)) {
-                                    currentPer.push(tile);
-                                } else {
-                                    // Uyumsuz taş, mevcut peri kontrol et
-                                    if (currentPer.length >= 3) {
-                                        const isValidPer = currentPer.every((t, index) =>
-                                            index === 0 || (
-                                                (t.color === currentPer[0].color && t.number === currentPer[index - 1].number + 1) ||
-                                                (t.number === currentPer[0].number && !currentPer.slice(0, index).some(prev => prev.color === t.color))
-                                            )
-                                        );
-
-                                        if (isValidPer) {
-                                            pers.push([...currentPer]);
-                                        }
-                                    }
-                                    currentPer = [tile];
-                                }
-                            }
-                        }
-
-                        // Son peri kontrol et
-                        if (currentPer.length >= 3) {
-                            const isSequential = currentPer.every((t, index) =>
-                                index === 0 || (
-                                    t.color === currentPer[0].color &&
-                                    t.number === currentPer[index - 1].number + 1
-                                )
-                            );
-
-                            const isSameNumber = currentPer.every(t => t.number === currentPer[0].number) &&
-                                new Set(currentPer.map(t => t.color)).size === currentPer.length;
-
-                            if (isSequential || isSameNumber) {
-                                pers.push([...currentPer]);
-                            }
-                        }
-                    });
-
-                    return pers;
-                },
-
-                // Joker ve Okey taşlarını işle
-                processSpecialTiles(pers) {
-                    const okeyTile = this.getOkeyTile();
-
-                    return pers.map(per => {
-                        return per.map(tile => {
-                            // Joker kontrolü
-                            if (tile.number === '★') {
-                                return {
+                    // İstaka haritasını oluştur ve okey taşlarını işaretle
+                    const topRow = this.playerTiles.slice(0, 18).map(tile => {
+                        if (!tile) return '_';
+                        // Okey taşı kontrolü
+                        if (tile.color === okeyColor && tile.number === okeyNumber) {
+                            return {
+                                display: '**',
+                                tile: {
                                     ...tile,
-                                    actualColor: this.indicatorTile.color,
-                                    actualNumber: this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1
-                                };
-                            }
-
-                            // Okey kontrolü
-                            if (tile.color === okeyTile.color && tile.number === okeyTile.number) {
-                                // Per tipine göre okey değerini belirle
-                                const otherTiles = per.filter(t => t !== tile);
-                                if (otherTiles.length >= 2) {
-                                    if (otherTiles[0].color === otherTiles[1].color) {
-                                        // Sıralı per
-                                        const numbers = otherTiles.map(t => t.number).sort((a, b) => a - b);
-                                        for (let i = 1; i < numbers.length; i++) {
-                                            if (numbers[i] > numbers[i - 1] + 1) {
-                                                return {
-                                                    ...tile,
-                                                    actualNumber: numbers[i - 1] + 1,
-                                                    actualColor: otherTiles[0].color
-                                                };
-                                            }
-                                        }
-                                    } else {
-                                        // Aynı sayılı per
-                                        return {
-                                            ...tile,
-                                            actualNumber: otherTiles[0].number,
-                                            actualColor: otherTiles.map(t => t.color).find(color =>
-                                                !otherTiles.some(t => t.color === color))
-                                        };
-                                    }
+                                    isOkey: true
                                 }
-                            }
-
-                            return tile;
-                        });
-                    });
-                },
-
-                // Dizili çiftleri tespit et
-                findArrangedPairs() {
-                    const pairs = [];
-                    const rows = [
-                        this.playerTiles.slice(0, 18),
-                        this.playerTiles.slice(18)
-                    ];
-
-                    rows.forEach(row => {
-                        for (let i = 0; i < row.length - 1; i++) {
-                            const tile1 = row[i];
-                            const tile2 = row[i + 1];
-                            if (tile1 && tile2 &&
-                                tile1.color === tile2.color &&
-                                tile1.number === tile2.number) {
-                                pairs.push([tile1, tile2]);
-                                i++; // Çifti bulduk, bir sonraki taşa geç
-                            }
+                            };
                         }
+                        return {
+                            display: tile.number === '★' ? '*' : tile.number,
+                            tile: tile
+                        };
                     });
 
-                    return pairs;
+                    const bottomRow = this.playerTiles.slice(18).map(tile => {
+                        if (!tile) return '_';
+                        // Okey taşı kontrolü
+                        if (tile.color === okeyColor && tile.number === okeyNumber) {
+                            return {
+                                display: '**',
+                                tile: {
+                                    ...tile,
+                                    isOkey: true
+                                }
+                            };
+                        }
+                        return {
+                            display: tile.number === '★' ? '*' : tile.number,
+                            tile: tile
+                        };
+                    });
+
+                    // İstaka haritasını göster
+                    const istakaMap = `
+Üst Sıra:   ${topRow.map(t => typeof t === 'string' ? t : t.display).join('-')}
+Alt Sıra:   ${bottomRow.map(t => typeof t === 'string' ? t : t.display).join('-')}`;
+                    alert(istakaMap);
+
+                    // Per kontrolü için grupları bul
+                    const findGroups = row => {
+                        const groups = [];
+                        let currentGroup = [];
+
+                        row.forEach(item => {
+                            if (item === '_') {
+                                if (currentGroup.length > 0) {
+                                    groups.push(currentGroup);
+                                    currentGroup = [];
+                                }
+                            } else {
+                                currentGroup.push(item.tile);
+                            }
+                        });
+
+                        if (currentGroup.length > 0) {
+                            groups.push(currentGroup);
+                        }
+
+                        return groups;
+                    };
+
+                    const topGroups = findGroups(topRow);
+                    const bottomGroups = findGroups(bottomRow);
+                    const allGroups = [...topGroups, ...bottomGroups];
+
+                    // Her grubu per kurallarına göre kontrol et
+                    const validPers = allGroups.filter(group => {
+                        if (group.length < 3) return false;
+
+                        // Aynı sayı kontrolü
+                        const isSameNumber = group.every(tile => {
+                            if (tile.isOkey) {
+                                // Okey taşı, gruptaki diğer taşların sayısını alır
+                                return true;
+                            }
+                            return tile.number === group[0].number;
+                        });
+
+                        if (isSameNumber) {
+                            // Farklı renk kontrolü
+                            const colors = new Set();
+                            let lastNormalTile = null;
+
+                            group.forEach(tile => {
+                                if (tile.isOkey) {
+                                    // Okey taşı için farklı bir renk varsay
+                                    if (lastNormalTile) {
+                                        // Kullanılmayan bir renk bul
+                                        ['red', 'blue', 'green', 'yellow'].forEach(color => {
+                                            if (!colors.has(color)) {
+                                                colors.add(color);
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    colors.add(tile.color);
+                                    lastNormalTile = tile;
+                                }
+                            });
+
+                            return colors.size === group.length && group.length <= 4;
+                        }
+
+                        // Sıralı sayı kontrolü
+                        let baseColor = null;
+                        let expectedNumber = null;
+
+                        return group.every((tile, index) => {
+                            if (index === 0) {
+                                baseColor = tile.isOkey ? null : tile.color;
+                                expectedNumber = tile.isOkey ? null : tile.number;
+                                return true;
+                            }
+
+                            if (tile.isOkey) {
+                                // Okey taşı, beklenen sayı olarak kabul edilir
+                                if (expectedNumber === null) {
+                                    expectedNumber = tile.number;
+                                } else {
+                                    expectedNumber++;
+                                }
+                                return true;
+                            }
+
+                            if (baseColor === null) {
+                                baseColor = tile.color;
+                            }
+
+                            if (tile.color !== baseColor) return false;
+
+                            if (expectedNumber === null) {
+                                expectedNumber = tile.number;
+                            } else {
+                                if (tile.number !== expectedNumber + 1) return false;
+                                expectedNumber = tile.number;
+                            }
+
+                            return true;
+                        }) && group.length <= 5;
+                    });
+
+                    return validPers;
                 },
 
-                // Otomatik per açma
+                // autoOpenPer fonksiyonunu güncelle
                 autoOpenPer() {
                     const pers = this.findArrangedPers();
-                    console.log('Bulunan perler:', pers); // Debug için
 
                     if (pers.length === 0) {
                         alert('Dizilmiş per bulunamadı!');
@@ -1406,39 +1392,23 @@
 
                     let openedPers = 0;
                     pers.forEach(per => {
-                        // Per geçerli mi son bir kez kontrol et
-                        const isSequential = per.every((tile, index, arr) =>
-                            index === 0 || (
-                                tile.color === arr[0].color &&
-                                tile.number === arr[index - 1].number + 1
-                            )
-                        );
+                        // Per açma işlemi
+                        this.players[this.currentPlayer].openPers.push([...per]);
 
-                        const isSameNumber = per.every(tile => tile.number === per[0].number) &&
-                            new Set(per.map(t => t.color)).size === per.length;
+                        // Kullanılan taşları istakadan kaldır
+                        per.forEach(tile => {
+                            const index = this.playerTiles.findIndex(t =>
+                                t && t.id === tile.id
+                            );
+                            if (index !== -1) {
+                                this.playerTiles[index] = null;
+                            }
+                        });
 
-                        if (isSequential || isSameNumber) {
-                            this.players[this.currentPlayer].openPers.push([...per]);
-
-                            // Kullanılan taşları istakadan kaldır
-                            per.forEach(tile => {
-                                const index = this.playerTiles.findIndex(t =>
-                                    t && t.id === tile.id
-                                );
-                                if (index !== -1) {
-                                    this.playerTiles[index] = null;
-                                }
-                            });
-
-                            openedPers++;
-                        }
+                        openedPers++;
                     });
 
-                    if (openedPers > 0) {
-                        alert(`${openedPers} adet per açıldı!`);
-                    } else {
-                        alert('Geçerli per bulunamadı!');
-                    }
+                    alert(`${openedPers} adet per açıldı!`);
                 },
 
                 // Otomatik çift açma
