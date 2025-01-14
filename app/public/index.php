@@ -345,12 +345,14 @@
                 Çift Aç
             </button>
 
-            <button @click="autoOpenHand"
+            <button @click="tryOpenHand"
+                :disabled="calculateCurrentPersTotal() < 101"
+                :class="{ 'bg-gray-500 cursor-not-allowed': calculateCurrentPersTotal() < 101 }"
                 class="px-3 py-1.5 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-all shadow-md text-xs font-medium flex items-center gap-1 hover:scale-105">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
                 </svg>
-                El Aç
+                El Aç (<span x-text="calculateCurrentPersTotal()"></span>)
             </button>
         </div>
     </div>
@@ -454,7 +456,7 @@
                     </div>
 
                     <!-- İstaka -->
-                    <div class="relative">
+                    <div class="istaka relative">
                         <!-- İstaka üstündeki butonları güncelle -->
                         <div class="absolute -top-2 right-0 transform translate-y-[-100%] z-10 flex gap-2">
                             <button @click="autoOpenPer"
@@ -473,86 +475,85 @@
                                 Çift Aç
                             </button>
 
-                            <button @click="autoOpenHand"
+                            <button @click="tryOpenHand"
+                                :disabled="calculateCurrentPersTotal() < 101"
+                                :class="{ 'bg-gray-500 cursor-not-allowed': calculateCurrentPersTotal() < 101 }"
                                 class="px-3 py-1.5 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-all shadow-md text-xs font-medium flex items-center gap-1 hover:scale-105">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
                                 </svg>
-                                El Aç
+                                El Aç (<span x-text="calculateCurrentPersTotal()"></span>)
                             </button>
                         </div>
 
                         <!-- İstaka -->
-                        <div class="istaka">
-                            <!-- Üst Sıra -->
-                            <div class="istaka-row">
-                                <template x-for="i in 18" :key="'slot-top-'+i">
-                                    <div class="tile-slot"
-                                        :class="{ 'empty': !playerTiles[i-1] }"
-                                        @dragover.prevent
-                                        @drop.prevent="drop($event, i-1)">
-                                        <template x-if="playerTiles[i-1]">
-                                            <div class="tile"
-                                                draggable="true"
-                                                @dragstart="dragStart($event, i-1)"
-                                                @dragend="dragEnd($event)"
-                                                @dblclick="toggleTileVisibility(i-1)"
-                                                @click.shift="toggleTileSelection(i-1)">
-                                                <div class="tile-content bg-white border-2 border-gray-300"
-                                                    :class="{
-                                                        [`tile-${playerTiles[i-1].color}`]: true,
-                                                        'ring-2 ring-blue-500 ring-offset-2': selectedTiles.includes(i-1),
-                                                        'opacity-75': selectedTiles.length > 0 && !selectedTiles.includes(i-1)
-                                                    }">
-                                                    <span x-show="!isTileHidden(playerTiles[i-1])"
-                                                        x-text="playerTiles[i-1].number"
-                                                        class="transition-opacity duration-200">
-                                                    </span>
-                                                    <span x-show="isTileHidden(playerTiles[i-1])"
-                                                        class="opacity-0">
-                                                        *
-                                                    </span>
-                                                </div>
+                        <div class="istaka-row">
+                            <template x-for="i in 18" :key="'slot-top-'+i">
+                                <div class="tile-slot"
+                                    :class="{ 'empty': !playerTiles[i-1] }"
+                                    @dragover.prevent
+                                    @drop.prevent="drop($event, i-1)">
+                                    <template x-if="playerTiles[i-1]">
+                                        <div class="tile"
+                                            draggable="true"
+                                            @dragstart="dragStart($event, i-1)"
+                                            @dragend="dragEnd($event)"
+                                            @dblclick="toggleTileVisibility(i-1)"
+                                            @click.shift="toggleTileSelection(i-1)">
+                                            <div class="tile-content bg-white border-2 border-gray-300"
+                                                :class="{
+                                                    [`tile-${playerTiles[i-1].color}`]: true,
+                                                    'ring-2 ring-blue-500 ring-offset-2': selectedTiles.includes(i-1),
+                                                    'opacity-75': selectedTiles.length > 0 && !selectedTiles.includes(i-1)
+                                                }">
+                                                <span x-show="!isTileHidden(playerTiles[i-1])"
+                                                    x-text="playerTiles[i-1].number"
+                                                    class="transition-opacity duration-200">
+                                                </span>
+                                                <span x-show="isTileHidden(playerTiles[i-1])"
+                                                    class="opacity-0">
+                                                    *
+                                                </span>
                                             </div>
-                                        </template>
-                                    </div>
-                                </template>
-                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
 
-                            <!-- Alt Sıra -->
-                            <div class="istaka-row">
-                                <template x-for="i in 18" :key="'slot-bottom-'+i">
-                                    <div class="tile-slot"
-                                        :class="{ 'empty': !playerTiles[i+17] }"
-                                        @dragover.prevent
-                                        @drop.prevent="drop($event, i+17)">
-                                        <template x-if="playerTiles[i+17]">
-                                            <div class="tile"
-                                                draggable="true"
-                                                @dragstart="dragStart($event, i+17)"
-                                                @dragend="dragEnd($event)"
-                                                @dblclick="toggleTileVisibility(i+17)"
-                                                @click.shift="toggleTileSelection(i+17)">
-                                                <div class="tile-content bg-white border-2 border-gray-300"
-                                                    :class="{
-                                                        [`tile-${playerTiles[i+17].color}`]: true,
-                                                        'ring-2 ring-blue-500 ring-offset-2': selectedTiles.includes(i+17),
-                                                        'opacity-75': selectedTiles.length > 0 && !selectedTiles.includes(i+17)
-                                                    }">
-                                                    <span x-show="!isTileHidden(playerTiles[i+17])"
-                                                        x-text="playerTiles[i+17].number"
-                                                        class="transition-opacity duration-200">
-                                                    </span>
-                                                    <span x-show="isTileHidden(playerTiles[i+17])"
-                                                        class="opacity-0">
-                                                        *
-                                                    </span>
-                                                </div>
+                        <!-- Alt Sıra -->
+                        <div class="istaka-row">
+                            <template x-for="i in 18" :key="'slot-bottom-'+i">
+                                <div class="tile-slot"
+                                    :class="{ 'empty': !playerTiles[i+17] }"
+                                    @dragover.prevent
+                                    @drop.prevent="drop($event, i+17)">
+                                    <template x-if="playerTiles[i+17]">
+                                        <div class="tile"
+                                            draggable="true"
+                                            @dragstart="dragStart($event, i+17)"
+                                            @dragend="dragEnd($event)"
+                                            @dblclick="toggleTileVisibility(i+17)"
+                                            @click.shift="toggleTileSelection(i+17)">
+                                            <div class="tile-content bg-white border-2 border-gray-300"
+                                                :class="{
+                                                    [`tile-${playerTiles[i+17].color}`]: true,
+                                                    'ring-2 ring-blue-500 ring-offset-2': selectedTiles.includes(i+17),
+                                                    'opacity-75': selectedTiles.length > 0 && !selectedTiles.includes(i+17)
+                                                }">
+                                                <span x-show="!isTileHidden(playerTiles[i+17])"
+                                                    x-text="playerTiles[i+17].number"
+                                                    class="transition-opacity duration-200">
+                                                </span>
+                                                <span x-show="isTileHidden(playerTiles[i+17])"
+                                                    class="opacity-0">
+                                                    *
+                                                </span>
                                             </div>
-                                        </template>
-                                    </div>
-                                </template>
-                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -1175,19 +1176,54 @@
                 },
 
                 tryOpenHand() {
-                    const pers = this.findArrangedPers();
-                    const totalPoints = pers.reduce((total, per) => {
-                        // Her per için puan hesapla
-                        const perPoints = per.reduce((perTotal, tile) => {
-                            // Joker kontrolü
+                    // İstakadaki taşları grupla
+                    const groups = [];
+                    let currentGroup = [];
+
+                    // Üst sıra (0-17)
+                    for (let i = 0; i < 18; i++) {
+                        if (this.playerTiles[i]) {
+                            currentGroup.push(this.playerTiles[i]);
+                        } else if (currentGroup.length > 0) {
+                            if (currentGroup.length >= 3) {
+                                groups.push([...currentGroup]);
+                            }
+                            currentGroup = [];
+                        }
+                    }
+                    if (currentGroup.length >= 3) {
+                        groups.push([...currentGroup]);
+                    }
+
+                    // Alt sıra (18-35)
+                    currentGroup = [];
+                    for (let i = 18; i < 36; i++) {
+                        if (this.playerTiles[i]) {
+                            currentGroup.push(this.playerTiles[i]);
+                        } else if (currentGroup.length > 0) {
+                            if (currentGroup.length >= 3) {
+                                groups.push([...currentGroup]);
+                            }
+                            currentGroup = [];
+                        }
+                    }
+                    if (currentGroup.length >= 3) {
+                        groups.push([...currentGroup]);
+                    }
+
+                    // Bulunan grupları per kurallarına göre kontrol et
+                    const validPers = groups.filter(group => this.isValidPerWithJoker(group));
+
+                    // Toplam puanı hesapla
+                    const totalPoints = validPers.reduce((total, per) => {
+                        return total + per.reduce((perTotal, tile) => {
                             if (tile.number === '★') {
+                                // Joker için gösterge+1 değerini kullan
                                 return perTotal + (this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1);
                             }
-
-                            // Okey kontrolü
                             const okeyTile = this.getOkeyTile();
                             if (tile.color === okeyTile.color && tile.number === okeyTile.number) {
-                                // Okey taşı için per içindeki diğer taşların ortalamasını al
+                                // Okey taşı için gruptaki diğer taşların ortalamasını al
                                 const otherTiles = per.filter(t => t !== tile);
                                 if (otherTiles.length === 0) return perTotal + tile.number;
                                 const avg = otherTiles.reduce((sum, t) => sum + (t.number === '★' ?
@@ -1195,203 +1231,17 @@
                                     t.number), 0) / otherTiles.length;
                                 return perTotal + Math.round(avg);
                             }
-
-                            // Normal taş
                             return perTotal + tile.number;
                         }, 0);
-
-                        // Her per için bonus puan (opsiyonel)
-                        const bonusPoints = per.length > 3 ? (per.length - 3) * 5 : 0;
-
-                        return total + perPoints + bonusPoints;
                     }, 0);
-
-                    console.log('Toplam Puanlar:', totalPoints); // Debug için
 
                     if (totalPoints < 101) {
                         alert(`Dizili perler toplamı 101 sayısına ulaşmıyor! (Toplam: ${totalPoints})`);
                         return;
                     }
 
-                    pers.forEach(per => {
-                        this.players[this.currentPlayer].openPers.push(per);
-                        per.forEach(tile => {
-                            const index = this.playerTiles.findIndex(t => t && t.id === tile.id);
-                            if (index !== -1) this.playerTiles[index] = null;
-                        });
-                    });
-
-                    this.players[this.currentPlayer].handOpened = true;
-                    alert(`El açıldı! Toplam ${totalPoints} puan ile. Artık diğer oyuncuların perlerine taş ekleyebilirsiniz.`);
-                },
-
-                // İstakadaki dizili perleri tespit et
-                findArrangedPers() {
-                    // Önce okey taşını belirle
-                    const okeyNumber = this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1;
-                    const okeyColor = this.indicatorTile.color;
-
-                    // İstaka haritasını oluştur ve okey taşlarını işaretle
-                    const topRow = this.playerTiles.slice(0, 18).map(tile => {
-                        if (!tile) return '_';
-                        // Okey taşı kontrolü
-                        if (tile.color === okeyColor && tile.number === okeyNumber) {
-                            return {
-                                display: '**',
-                                tile: {
-                                    ...tile,
-                                    isOkey: true
-                                }
-                            };
-                        }
-                        return {
-                            display: tile.number === '★' ? '*' : tile.number,
-                            tile: tile
-                        };
-                    });
-
-                    const bottomRow = this.playerTiles.slice(18).map(tile => {
-                        if (!tile) return '_';
-                        // Okey taşı kontrolü
-                        if (tile.color === okeyColor && tile.number === okeyNumber) {
-                            return {
-                                display: '**',
-                                tile: {
-                                    ...tile,
-                                    isOkey: true
-                                }
-                            };
-                        }
-                        return {
-                            display: tile.number === '★' ? '*' : tile.number,
-                            tile: tile
-                        };
-                    });
-
-                    // İstaka haritasını göster
-                    const istakaMap = `
-Üst Sıra:   ${topRow.map(t => typeof t === 'string' ? t : t.display).join('-')}
-Alt Sıra:   ${bottomRow.map(t => typeof t === 'string' ? t : t.display).join('-')}`;
-                    alert(istakaMap);
-
-                    // Per kontrolü için grupları bul
-                    const findGroups = row => {
-                        const groups = [];
-                        let currentGroup = [];
-
-                        row.forEach(item => {
-                            if (item === '_') {
-                                if (currentGroup.length > 0) {
-                                    groups.push(currentGroup);
-                                    currentGroup = [];
-                                }
-                            } else {
-                                currentGroup.push(item.tile);
-                            }
-                        });
-
-                        if (currentGroup.length > 0) {
-                            groups.push(currentGroup);
-                        }
-
-                        return groups;
-                    };
-
-                    const topGroups = findGroups(topRow);
-                    const bottomGroups = findGroups(bottomRow);
-                    const allGroups = [...topGroups, ...bottomGroups];
-
-                    // Her grubu per kurallarına göre kontrol et
-                    const validPers = allGroups.filter(group => {
-                        if (group.length < 3) return false;
-
-                        // Aynı sayı kontrolü
-                        const isSameNumber = group.every(tile => {
-                            if (tile.isOkey) {
-                                // Okey taşı, gruptaki diğer taşların sayısını alır
-                                return true;
-                            }
-                            return tile.number === group[0].number;
-                        });
-
-                        if (isSameNumber) {
-                            // Farklı renk kontrolü
-                            const colors = new Set();
-                            let lastNormalTile = null;
-
-                            group.forEach(tile => {
-                                if (tile.isOkey) {
-                                    // Okey taşı için farklı bir renk varsay
-                                    if (lastNormalTile) {
-                                        // Kullanılmayan bir renk bul
-                                        ['red', 'blue', 'green', 'yellow'].forEach(color => {
-                                            if (!colors.has(color)) {
-                                                colors.add(color);
-                                            }
-                                        });
-                                    }
-                                } else {
-                                    colors.add(tile.color);
-                                    lastNormalTile = tile;
-                                }
-                            });
-
-                            return colors.size === group.length && group.length <= 4;
-                        }
-
-                        // Sıralı sayı kontrolü
-                        let baseColor = null;
-                        let expectedNumber = null;
-
-                        return group.every((tile, index) => {
-                            if (index === 0) {
-                                baseColor = tile.isOkey ? null : tile.color;
-                                expectedNumber = tile.isOkey ? null : tile.number;
-                                return true;
-                            }
-
-                            if (tile.isOkey) {
-                                // Okey taşı, beklenen sayı olarak kabul edilir
-                                if (expectedNumber === null) {
-                                    expectedNumber = tile.number;
-                                } else {
-                                    expectedNumber++;
-                                }
-                                return true;
-                            }
-
-                            if (baseColor === null) {
-                                baseColor = tile.color;
-                            }
-
-                            if (tile.color !== baseColor) return false;
-
-                            if (expectedNumber === null) {
-                                expectedNumber = tile.number;
-                            } else {
-                                if (tile.number !== expectedNumber + 1) return false;
-                                expectedNumber = tile.number;
-                            }
-
-                            return true;
-                        }) && group.length <= 5;
-                    });
-
-                    return validPers;
-                },
-
-                // autoOpenPer fonksiyonunu güncelle
-                autoOpenPer() {
-                    const pers = this.findArrangedPers();
-
-                    if (pers.length === 0) {
-                        alert('Dizilmiş per bulunamadı!');
-                        return;
-                    }
-
-                    let openedPers = 0;
-                    pers.forEach(per => {
-                        // Per açma işlemi
+                    // Perleri aç
+                    validPers.forEach(per => {
                         this.players[this.currentPlayer].openPers.push([...per]);
 
                         // Kullanılan taşları istakadan kaldır
@@ -1402,80 +1252,6 @@ Alt Sıra:   ${bottomRow.map(t => typeof t === 'string' ? t : t.display).join('-
                             if (index !== -1) {
                                 this.playerTiles[index] = null;
                             }
-                        });
-
-                        openedPers++;
-                    });
-
-                    alert(`${openedPers} adet per açıldı!`);
-                },
-
-                // Otomatik çift açma
-                autoOpenPairs() {
-                    const pairs = this.findArrangedPairs();
-                    if (pairs.length < 5) {
-                        alert('En az 5 çift dizilmiş olmalı!');
-                        return;
-                    }
-
-                    const allPairTiles = pairs.flat();
-                    this.players[this.currentPlayer].openPers.push(allPairTiles);
-                    this.players[this.currentPlayer].hasOpenedDouble = true;
-
-                    // Kullanılan taşları kaldır
-                    allPairTiles.forEach(tile => {
-                        const index = this.playerTiles.findIndex(t => t && t.id === tile.id);
-                        if (index !== -1) this.playerTiles[index] = null;
-                    });
-
-                    alert(`${pairs.length} çift açıldı!`);
-                },
-
-                // Otomatik el açma
-                autoOpenHand() {
-                    const pers = this.findArrangedPers();
-                    const totalPoints = pers.reduce((total, per) => {
-                        // Her per için puan hesapla
-                        const perPoints = per.reduce((perTotal, tile) => {
-                            // Joker kontrolü
-                            if (tile.number === '★') {
-                                return perTotal + (this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1);
-                            }
-
-                            // Okey kontrolü
-                            const okeyTile = this.getOkeyTile();
-                            if (tile.color === okeyTile.color && tile.number === okeyTile.number) {
-                                // Okey taşı için per içindeki diğer taşların ortalamasını al
-                                const otherTiles = per.filter(t => t !== tile);
-                                if (otherTiles.length === 0) return perTotal + tile.number;
-                                const avg = otherTiles.reduce((sum, t) => sum + (t.number === '★' ?
-                                    (this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1) :
-                                    t.number), 0) / otherTiles.length;
-                                return perTotal + Math.round(avg);
-                            }
-
-                            // Normal taş
-                            return perTotal + tile.number;
-                        }, 0);
-
-                        // Her per için bonus puan (opsiyonel)
-                        const bonusPoints = per.length > 3 ? (per.length - 3) * 5 : 0;
-
-                        return total + perPoints + bonusPoints;
-                    }, 0);
-
-                    console.log('Toplam Puanlar:', totalPoints); // Debug için
-
-                    if (totalPoints < 101) {
-                        alert(`Dizili perler toplamı 101 sayısına ulaşmıyor! (Toplam: ${totalPoints})`);
-                        return;
-                    }
-
-                    pers.forEach(per => {
-                        this.players[this.currentPlayer].openPers.push(per);
-                        per.forEach(tile => {
-                            const index = this.playerTiles.findIndex(t => t && t.id === tile.id);
-                            if (index !== -1) this.playerTiles[index] = null;
                         });
                     });
 
@@ -1625,6 +1401,67 @@ Alt Sıra:   ${bottomRow.map(t => typeof t === 'string' ? t : t.display).join('-
 
                     backtrack(0, []);
                     return result;
+                },
+
+                calculateCurrentPersTotal() {
+                    // İstakadaki taşları grupla
+                    const groups = [];
+                    let currentGroup = [];
+
+                    // Üst sıra (0-17)
+                    for (let i = 0; i < 18; i++) {
+                        if (this.playerTiles[i]) {
+                            currentGroup.push(this.playerTiles[i]);
+                        } else if (currentGroup.length > 0) {
+                            if (currentGroup.length >= 3) {
+                                groups.push([...currentGroup]);
+                            }
+                            currentGroup = [];
+                        }
+                    }
+                    if (currentGroup.length >= 3) {
+                        groups.push([...currentGroup]);
+                    }
+
+                    // Alt sıra (18-35)
+                    currentGroup = [];
+                    for (let i = 18; i < 36; i++) {
+                        if (this.playerTiles[i]) {
+                            currentGroup.push(this.playerTiles[i]);
+                        } else if (currentGroup.length > 0) {
+                            if (currentGroup.length >= 3) {
+                                groups.push([...currentGroup]);
+                            }
+                            currentGroup = [];
+                        }
+                    }
+                    if (currentGroup.length >= 3) {
+                        groups.push([...currentGroup]);
+                    }
+
+                    // Geçerli perlerin toplamını hesapla
+                    return groups.reduce((total, group) => {
+                        if (this.isValidPerWithJoker(group)) {
+                            return total + group.reduce((sum, tile) => {
+                                if (tile.number === '★') {
+                                    // Joker için gösterge+1 değerini kullan
+                                    return sum + (this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1);
+                                }
+                                const okeyTile = this.getOkeyTile();
+                                if (tile.color === okeyTile.color && tile.number === okeyTile.number) {
+                                    // Okey taşı için gruptaki diğer taşların ortalamasını al
+                                    const otherTiles = group.filter(t => t !== tile);
+                                    if (otherTiles.length === 0) return sum + tile.number;
+                                    const avg = otherTiles.reduce((s, t) => s + (t.number === '★' ?
+                                        (this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1) :
+                                        t.number), 0) / otherTiles.length;
+                                    return sum + Math.round(avg);
+                                }
+                                return sum + tile.number;
+                            }, 0);
+                        }
+                        return total;
+                    }, 0);
                 }
             }));
         });
