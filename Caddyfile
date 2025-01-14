@@ -3,7 +3,15 @@
     order php_server before file_server
 }
 
-{$SERVER_NAME:localhost} {
+# Localhost için HTTPS'i devre dışı bırak
+http://localhost, https://localhost {
+    tls internal  # localhost için self-signed sertifika kullanımını engeller
     root * /app/public
     php_server
-} 
+}
+
+# Diğer tüm domainler için normal HTTPS yapılandırması
+:80 {
+    root * /app/public
+    php_server
+}

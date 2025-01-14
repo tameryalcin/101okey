@@ -611,6 +611,7 @@
                 startGame() {
                     this.initializeTiles();
                     this.players[this.currentPlayer].tileCount = 22;
+                    this.autoArrangeTiles();
                 },
 
                 initializeTiles() {
@@ -910,128 +911,126 @@
                     }
                 },
 
-                isValidPerWithJoker(tiles) {
-                    if (tiles.length < 3 || tiles.length > 4) return false; // Max 4'lü per
-
+                isValidPerWithJoker(per) {
                     const okeyTile = this.getOkeyTile();
+                    const jokerValue = {
+                        color: this.indicatorTile.color,
+                        number: this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1
+                    };
 
-                    // Taşları işle (joker ve okey kontrolü)
-                    const processedTiles = tiles.map(tile => {
-                        // Joker kontrolü - sadece gösterge renginde ve bir büyük sayıda kullanılabilir
+                    // Önce okey ve joker taşlarını işaretle
+                    const processedPer = per.map(tile => {
+                        // Joker kontrolü (sadece gösterge renginde ve bir büyük sayı olarak kullanılabilir)
                         if (tile.number === '★') {
                             return {
                                 ...tile,
                                 isJoker: true,
-                                isOkey: false,
-                                actualColor: this.indicatorTile.color,
-                                actualNumber: this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1
+                                actualColor: jokerValue.color, // Joker sadece gösterge renginde kullanılır
+                                actualNumber: jokerValue.number
                             };
                         }
-
-                        // Okey kontrolü - her renk ve sayı yerine kullanılabilir
+                        // Okey kontrolü (her yerde kullanılabilir)
                         if (tile.color === okeyTile.color && tile.number === okeyTile.number) {
                             return {
                                 ...tile,
-                                isJoker: false,
                                 isOkey: true,
-                                actualColor: null,
-                                actualNumber: null
+                                actualColor: null, // Okey her renkte kullanılabilir
+                                actualNumber: null // Okey her sayı olabilir
                             };
                         }
-
-                        return {
-                            ...tile,
-                            isJoker: false,
-                            isOkey: false,
-                            actualColor: tile.color,
-                            actualNumber: tile.number
-                        };
+                        return tile;
                     });
 
-                    // Joker taşının kullanımını kontrol et
-                    const jokerTiles = processedTiles.filter(t => t.isJoker);
-                    const nonJokerTiles = processedTiles.filter(t => !t.isJoker && !t.isOkey);
-                    const okeyTiles = processedTiles.filter(t => t.isOkey);
+                    // Aynı sayılı per kontrolü
+                    const isSameNumber = processedPer.every((tile, _, arr) => {
+                        const normalTiles = arr.filter(t => !t.isJoker && !t.isOkey);
+                        if (normalTiles.length === 0) return true;
 
-                    // İki tür per kontrolü yap:
-                    // 1. Aynı renk ardışık sayılar
-                    // 2. Farklı renk aynı sayılar
+                        const targetNumber = normalTiles[0].number;
 
-                    // Önce aynı sayı farklı renk kontrolü yap
-                    const allNumbers = nonJokerTiles.map(t => t.actualNumber);
-                    const isAllSameNumber = allNumbers.every(n => n === allNumbers[0]);
-
-                    if (isAllSameNumber) {
-                        // Aynı sayılı farklı renkli per kontrolü
-                        const colors = new Set(nonJokerTiles.map(t => t.actualColor));
-
-                        // Aynı renkten iki taş olmamalı
-                        if (colors.size !== nonJokerTiles.length) {
-                            return false;
+                        if (tile.isJoker) {
+                            // Joker sadece kendi değerinde kullanılabilir
+                            return jokerValue.number === targetNumber;
                         }
-
-                        // Joker varsa gösterge rengi kontrolü
-                        if (jokerTiles.length > 0) {
-                            if (!nonJokerTiles.some(t => t.actualNumber === jokerTiles[0].actualNumber)) {
-                                return false; // Joker'in sayısı diğer taşlarla aynı olmalı
-                            }
-                        }
-
-                        // Okey taşları için sayıyı ayarla
-                        okeyTiles.forEach(tile => {
-                            tile.actualNumber = allNumbers[0];
-                            // Henüz kullanılmamış bir renk seç
-                            const usedColors = new Set([...nonJokerTiles.map(t => t.actualColor),
-                                ...okeyTiles.filter(t => t.actualColor).map(t => t.actualColor)
-                            ]);
-                            const availableColors = ['red', 'blue', 'yellow', 'green'].filter(c => !usedColors.has(c));
-                            tile.actualColor = availableColors[0];
-                        });
-
-                        return true;
-                    } else {
-                        // Aynı renk ardışık sayılar kontrolü (mevcut mantık)
-                        if (nonJokerTiles.length > 0) {
-                            const mainColor = nonJokerTiles[0].actualColor;
-
-                            // Tüm taşlar aynı renk olmalı (joker hariç)
-                            if (!nonJokerTiles.every(t => t.actualColor === mainColor)) {
-                                return false;
-                            }
-
-                            // Okey taşlarını uygun değerlere ayarla
-                            processedTiles.forEach(tile => {
-                                if (tile.isOkey) {
-                                    tile.actualColor = mainColor;
-                                    const numbers = nonJokerTiles.map(t => t.actualNumber).sort((a, b) => a - b);
-
-                                    // Dizideki boşluğu bul ve okey'i oraya yerleştir
-                                    for (let i = 1; i < numbers.length; i++) {
-                                        if (numbers[i] > numbers[i - 1] + 1) {
-                                            tile.actualNumber = numbers[i - 1] + 1;
-                                            break;
-                                        }
-                                    }
-                                    if (!tile.actualNumber) {
-                                        tile.actualNumber = numbers[0] > 1 ? numbers[0] - 1 : numbers[numbers.length - 1] + 1;
-                                    }
-                                }
-                            });
-
-                            // Sayıları sırala ve ardışıklık kontrolü
-                            const numbers = processedTiles.map(t => t.actualNumber).sort((a, b) => a - b);
-                            for (let i = 1; i < numbers.length; i++) {
-                                if (numbers[i] !== numbers[i - 1] + 1) return false;
-                            }
-
-                            // 13'ten sonra 1 gelemez kontrolü
-                            if (numbers[0] === 1 && numbers[numbers.length - 1] === 13) return false;
-
+                        if (tile.isOkey) {
+                            // Okey her sayı yerine kullanılabilir
                             return true;
                         }
+                        return tile.number === targetNumber;
+                    });
+
+                    if (isSameNumber) {
+                        // Renk kontrolü
+                        const colors = new Set();
+                        let lastNormalTile = null;
+
+                        for (const tile of processedPer) {
+                            if (tile.isJoker) {
+                                // Joker sadece gösterge renginde kullanılabilir
+                                colors.add(jokerValue.color);
+                            } else if (tile.isOkey) {
+                                // Okey için farklı bir renk bul
+                                for (const color of ['red', 'blue', 'yellow', 'green']) {
+                                    if (!colors.has(color)) {
+                                        colors.add(color);
+                                        break;
+                                    }
+                                }
+                            } else {
+                                if (colors.has(tile.color)) return false; // Aynı renk tekrarı olamaz
+                                colors.add(tile.color);
+                                lastNormalTile = tile;
+                            }
+                        }
+                        return processedPer.length <= 4; // Aynı sayılı per max 4'lü olabilir
                     }
 
-                    return false;
+                    // Sıralı per kontrolü
+                    let baseColor = null;
+                    let expectedNumber = null;
+                    let lastNormalTile = null;
+
+                    return processedPer.every((tile, index) => {
+                        if (index === 0) {
+                            if (tile.isJoker) {
+                                // Joker sadece kendi değerinde ve renginde kullanılabilir
+                                baseColor = jokerValue.color;
+                                expectedNumber = jokerValue.number;
+                            } else if (tile.isOkey) {
+                                // İlk taş okey ise sonraki taşa göre değer alacak
+                                return true;
+                            } else {
+                                baseColor = tile.color;
+                                expectedNumber = tile.number;
+                            }
+                            lastNormalTile = tile;
+                            return true;
+                        }
+
+                        if (tile.isJoker) {
+                            // Joker sadece kendi değerinde ve renginde kullanılabilir
+                            return jokerValue.color === baseColor && jokerValue.number === expectedNumber + 1;
+                        }
+
+                        if (tile.isOkey) {
+                            // Okey taşı, solundaki taşın renginde ve bir büyük sayı olarak kullanılır
+                            if (lastNormalTile) {
+                                expectedNumber++;
+                                return true;
+                            }
+                        }
+
+                        if (baseColor === null) {
+                            baseColor = tile.color;
+                        }
+
+                        if (tile.color !== baseColor) return false;
+                        if (tile.number !== expectedNumber + 1) return false;
+
+                        expectedNumber = tile.number;
+                        lastNormalTile = tile;
+                        return true;
+                    }) && processedPer.length <= 5; // Sıralı per max 5'li olabilir
                 },
 
                 getOkeyTile() {
@@ -1482,6 +1481,150 @@ Alt Sıra:   ${bottomRow.map(t => typeof t === 'string' ? t : t.display).join('-
 
                     this.players[this.currentPlayer].handOpened = true;
                     alert(`El açıldı! Toplam ${totalPoints} puan ile. Artık diğer oyuncuların perlerine taş ekleyebilirsiniz.`);
+                },
+
+                // Taşları otomatik düzenle
+                autoArrangeTiles() {
+                    // Tüm taşları topla
+                    let allTiles = this.playerTiles.filter(tile => tile !== null);
+
+                    // Olası tüm perleri bul
+                    let possiblePers = this.findAllPossiblePers(allTiles);
+
+                    // Perleri puanlarına göre sırala (en yüksek puan üstte)
+                    possiblePers.sort((a, b) => {
+                        const scoreA = a.reduce((sum, tile) => sum + (tile.number === '★' ?
+                            (this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1) :
+                            tile.number), 0);
+                        const scoreB = b.reduce((sum, tile) => sum + (tile.number === '★' ?
+                            (this.indicatorTile.number === 13 ? 1 : this.indicatorTile.number + 1) :
+                            tile.number), 0);
+                        return scoreB - scoreA;
+                    });
+
+                    // En iyi perleri seç
+                    let selectedPers = [];
+                    let usedTiles = new Set();
+
+                    possiblePers.forEach(per => {
+                        // Per içindeki taşlar daha önce kullanılmış mı kontrol et
+                        const isPerAvailable = per.every(tile => !usedTiles.has(tile.id));
+
+                        if (isPerAvailable) {
+                            selectedPers.push(per);
+                            per.forEach(tile => usedTiles.add(tile.id));
+                        }
+                    });
+
+                    // İstakayı temizle
+                    this.playerTiles = Array(36).fill(null);
+
+                    // Seçilen perleri üst sıraya yerleştir
+                    let topRowIndex = 0;
+                    selectedPers.forEach(per => {
+                        if (topRowIndex + per.length <= 18) { // Üst sırada yer varsa
+                            per.forEach(tile => {
+                                this.playerTiles[topRowIndex] = tile;
+                                topRowIndex++;
+                            });
+                            // Per arası boşluk bırak
+                            topRowIndex++;
+                        }
+                    });
+
+                    // Kullanılmayan taşları alt sıranın sonuna yerleştir
+                    let unusedTiles = allTiles.filter(tile => !usedTiles.has(tile.id));
+                    let bottomRowIndex = 35;
+
+                    unusedTiles.forEach(tile => {
+                        while (bottomRowIndex >= 18 && this.playerTiles[bottomRowIndex] !== null) {
+                            bottomRowIndex--;
+                        }
+                        if (bottomRowIndex >= 18) {
+                            this.playerTiles[bottomRowIndex] = tile;
+                            bottomRowIndex--;
+                        }
+                    });
+                },
+
+                // Tüm olası perleri bul
+                findAllPossiblePers(tiles) {
+                    let possiblePers = [];
+                    const okeyTile = this.getOkeyTile();
+
+                    // Aynı sayılı per kombinasyonlarını bul
+                    for (let i = 1; i <= 13; i++) {
+                        let sameTiles = tiles.filter(t => t.number === i ||
+                            (t.number === '★') ||
+                            (t.color === okeyTile.color && t.number === okeyTile.number));
+
+                        if (sameTiles.length >= 3) {
+                            // Tüm olası 3'lü ve 4'lü kombinasyonları oluştur
+                            this.getCombinations(sameTiles, 3).forEach(combo => {
+                                if (this.isValidPerWithJoker(combo)) {
+                                    possiblePers.push(combo);
+                                }
+                            });
+                            if (sameTiles.length >= 4) {
+                                this.getCombinations(sameTiles, 4).forEach(combo => {
+                                    if (this.isValidPerWithJoker(combo)) {
+                                        possiblePers.push(combo);
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    // Sıralı per kombinasyonlarını bul
+                    ['red', 'blue', 'yellow', 'green'].forEach(color => {
+                        let colorTiles = tiles.filter(t => t.color === color ||
+                            t.number === '★' ||
+                            (t.color === okeyTile.color && t.number === okeyTile.number));
+
+                        for (let start = 1; start <= 11; start++) {
+                            let sequentialTiles = colorTiles.filter(t =>
+                                t.number >= start && t.number <= start + 4 ||
+                                t.number === '★' ||
+                                (t.color === okeyTile.color && t.number === okeyTile.number)
+                            );
+
+                            if (sequentialTiles.length >= 3) {
+                                // 3'lü, 4'lü ve 5'li kombinasyonları kontrol et
+                                [3, 4, 5].forEach(size => {
+                                    if (sequentialTiles.length >= size) {
+                                        this.getCombinations(sequentialTiles, size).forEach(combo => {
+                                            if (this.isValidPerWithJoker(combo)) {
+                                                possiblePers.push(combo);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    });
+
+                    return possiblePers;
+                },
+
+                // Kombinasyonları oluştur
+                getCombinations(arr, size) {
+                    const result = [];
+
+                    function backtrack(start, current) {
+                        if (current.length === size) {
+                            result.push([...current]);
+                            return;
+                        }
+
+                        for (let i = start; i < arr.length; i++) {
+                            current.push(arr[i]);
+                            backtrack(i + 1, current);
+                            current.pop();
+                        }
+                    }
+
+                    backtrack(0, []);
+                    return result;
                 }
             }));
         });
